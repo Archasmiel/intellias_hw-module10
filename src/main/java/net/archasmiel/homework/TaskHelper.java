@@ -1,7 +1,5 @@
 package net.archasmiel.homework;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import net.archasmiel.homework.models.User;
 
 import java.io.FileWriter;
@@ -10,48 +8,64 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import static net.archasmiel.homework.FileHelper.readLines;
+import java.util.stream.Collector;
 
 public class TaskHelper {
 
-	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-	private static final Pattern PHONE_EXP1 = Pattern.compile("\\d{3}-\\d{3}-\\d{4}");
-	private static final Pattern PHONE_EXP2 = Pattern.compile("\\(\\d{3}\\) \\d{3}-\\d{4}");
+	private static final FileHelper FILE_HELPER = new FileHelper();
 
-	private TaskHelper() {
+	public TaskHelper() {
 
 	}
 
-	private static boolean isPhone(CharSequence cs) {
-		return PHONE_EXP1.matcher(cs).results().count() == 1 || PHONE_EXP2.matcher(cs).results().count() == 1;
+	public void parsePhones(String path) {
+		List<String> lines = FILE_HELPER.readLines(path);
+		lines.stream()
+			.filter(e -> e.matches("\\d{3}-\\d{3}-\\d{4}") || e.matches("\\(\\d{3}\\) \\d{3}-\\d{4}"))
+			.forEach(System.out::println);
 	}
 
-	private static User getUser(String line) {
-		String[] data = line.split(" ");
-		return new User(data[0], Integer.parseInt(data[1]));
-	}
+	public void parseUsers(String path) {
+		try (FileWriter writer = new FileWriter("user.json")) {
+			String result = FILE_HELPER.readLines(path).stream()
+				.skip(1)
+				.map(e -> {
+					String[] data = e.split(" ");
+					return new User(data[0], data[1]);
+				})
+				.collect(Collector.of(
+					() -> new StringBuilder("[\n"),
+					(builder, o) -> {
+						StringBuilder bld = new StringBuilder();
+						try {
+							bld.append("\t{\n")
+								.append("\t\t").append("\"name\": \"").append(o.name()).append("\",\n")
+								.append("\t\t").append("\"age\": ").append(Integer.parseInt(o.age())).append("\n")
+								.append("\t},\n");
+						} catch (NumberFormatException e) {
+							e.printStackTrace();
+						}
+						builder.append(bld);
+					},
+					StringBuilder::append,
+					builder -> {
+						if (builder.length() > 2) {
+							builder.deleteCharAt(builder.length()-2);
+						}
+						return builder.append("]").toString();
+					}
+				));
 
-	public static void parsePhones(String path) {
-		List<String> lines = readLines(path);
-		lines.stream().filter(TaskHelper::isPhone).forEach(System.out::println);
-	}
-
-	public static void parseUsers(String path) {
-		try (FileWriter writer = new FileWriter("users1.json")) {
-			List<User> users = readLines(path).stream()
-				.skip(1).map(TaskHelper::getUser).toList();
-
-			writer.write(GSON.toJson(users));
+			writer.write(result);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public static void parseWords(String path) {
+	public void parseWords(String path) {
 		Map<String, Integer> wordCount = new HashMap<>();
 
-		readLines(path).forEach(e -> {
+		FILE_HELPER.readLines(path).forEach(e -> {
 			String[] words = e.split(" +");
 			for (String word: words) {
 				wordCount.put(word, wordCount.getOrDefault(word, 0) + 1);
