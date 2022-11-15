@@ -3,4 +3,4 @@ alice 21
 ryan 30
 john humble
 kianu 30
-kianu 1
+kianu
