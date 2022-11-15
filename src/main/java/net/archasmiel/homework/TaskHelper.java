@@ -42,10 +42,10 @@ public class TaskHelper {
 								.append("\t\t").append("\"name\": \"").append(o.name()).append("\",\n")
 								.append("\t\t").append("\"age\": ").append(Integer.parseInt(o.age())).append("\n")
 								.append("\t},\n");
+							builder.append(bld);
 						} catch (NumberFormatException e) {
 							e.printStackTrace();
 						}
-						builder.append(bld);
 					},
 					StringBuilder::append,
 					builder -> {

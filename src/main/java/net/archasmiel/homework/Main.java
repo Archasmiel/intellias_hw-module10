@@ -3,7 +3,7 @@ package net.archasmiel.homework;
 public class Main {
 
 	public static void main(String[] args) {
-		task1();
+		task2();
 	}
 
 	private static void task1() {
