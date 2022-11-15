@@ -30,22 +30,22 @@ public class TaskHelper {
 			String result = FILE_HELPER.readLines(path).stream()
 				.skip(1)
 				.map(e -> {
-					String[] data = e.split(" ");
-					return new User(data[0], data[1]);
+					try {
+						String[] data = e.split(" ");
+						int age = Integer.parseInt(data[1]);
+						return new User(data[0], age);
+					} catch (Exception exception) {
+						return null;
+					}
 				})
 				.collect(Collector.of(
 					() -> new StringBuilder("[\n"),
 					(builder, o) -> {
-						StringBuilder bld = new StringBuilder();
-						try {
-							bld.append("\t{\n")
+						if (o == null) return;
+						builder.append("\t{\n")
 								.append("\t\t").append("\"name\": \"").append(o.name()).append("\",\n")
-								.append("\t\t").append("\"age\": ").append(Integer.parseInt(o.age())).append("\n")
+								.append("\t\t").append("\"age\": ").append(o.age()).append("\n")
 								.append("\t},\n");
-							builder.append(bld);
-						} catch (NumberFormatException e) {
-							e.printStackTrace();
-						}
 					},
 					StringBuilder::append,
 					builder -> {
